@@ -9,24 +9,41 @@ from collections import Counter
 # calculate the mean, given a counter and the
 # length of the feature (chromosome or genome)
 def mean(depthCount, length):
-    mean = float
+    # u holds the mean
+    u = float
     sumCov = 0.0
     
     for d in depthCount:
         sumCov += d * float(depthCount[d])
-    mean = sumCov / length
-    return mean
+    u = sumCov / length
+    return u
 
-def median(depthCount):
-    median = float
+def stdev(depthCount, length):
+    # u holds the mean
+    u = mean(depthCount, length)
+    sumVar = 0.0
+
+    # stdev is sqrt(sum((x-u)^2)/#elements)
+    for d in depthCount:
+        sumVar += (d - u)**2
+    variance = float(sumVar) / length
+    stdev = variance**(0.5)
+    return stdev
+
+# calculate quartiles or percentiles from the depthList counter.
+# percentile(depthList, 0.5) returns the media
+def percentile(depthCount, q):
+    # perc is percentile value to return
+    perc = float
+    #length is the number of bases we're looking at
     length=sum(depthCount.values())
     
     # the number of bases through the region
-    # we've gone with median
-    p = 0
+    # we've gone
+    b = 0
     
-    #
-    halfway = float(length) / 2
+    # stopping point. Halfway for median
+    limit = float(length) * q
         
     # a list of the depth numbers. Sort it from
     # smallest to largest and start counting to
@@ -36,25 +53,29 @@ def median(depthCount):
 
     # iterator i
     i = 0
-    while p <= halfway:
+    while b <= limit:
         # if p is exactly halfway, then we must
         # take the mean of the two surrounding.
-        if p == halfway:
-            median = (depthList[i-1] + depthList[i]) / float(2)
-            return median
+        if b == limit:
+            perc = (depthList[i-1] + depthList[i]) / float(2)
+            return perc
     
         # myDepth is the coverage depth
         myDepth = depthList[i]
 
         # depthCount[myDepth] is the number of bases
         # that have depth of myDepth
-        p += depthCount[myDepth]
+        b += depthCount[myDepth]
         i += 1
-    median = depthList[i-1]
-    return median
+    perc = depthList[i-1]
+    return perc
 
+# median is simply 50th percentile
+def median(depthCount):
+    return percentile(depthCount, 0.5)
+
+# Driver function
 def coverageStats(bedfile):
-    
     # vars for storing the previous line's info
     prevChrom = None
     prevEnd = 0
@@ -75,7 +96,7 @@ def coverageStats(bedfile):
     depth = float
     
     # print header
-    print '\t'.join(('chr', 'length', 'meanDepth', 'medianDepth'))
+    print '\t'.join(('chr', 'length', 'basesCovered', 'meanDepth', 'stdevDepth', 'medianDepth', 'q1', 'q3'))
 
     for line in bedfile:
         v = line.rstrip().split('\t')
@@ -92,7 +113,7 @@ def coverageStats(bedfile):
                 # even if it's zero coverage
                 chromLength = prevEnd
                 genomeLength += prevEnd
-                print '\t'.join(map(str,(prevChrom, chromLength, mean(chromDepth, chromLength), median(chromDepth))))
+                print '\t'.join(map(str,(prevChrom, chromLength, mean(chromDepth, chromLength), stdev(chromDepth, chromLength), median(chromDepth), percentile(chromDepth, 0.25), percentile(chromDepth, 0.75))))
 
                 # start a new counter
                 chromDepth=Counter()
@@ -110,16 +131,13 @@ def coverageStats(bedfile):
         prevChrom = chrom
         prevEnd = end
 
-
     # print the last chromosome
     chromLength = end
-    print '\t'.join(map(str,(chrom, chromLength, mean(chromDepth, chromLength), median(chromDepth))))
-
-
+    print '\t'.join(map(str,(chrom, chromLength, mean(chromDepth, chromLength), stdev(chromDepth, chromLength), median(chromDepth), percentile(chromDepth, 0.25), percentile(chromDepth, 0.75))))
 
     # print the whole genome coverage statistics    
     genomeLength += end
-    print '\t'.join(map(str,('total', genomeLength, mean(genomeDepth, genomeLength), median(genomeDepth))))
+    print '\t'.join(map(str,('total', genomeLength, mean(genomeDepth, genomeLength), stdev(chromDepth, chromLength), median(genomeDepth), percentile(genomeDepth, 0.25), percentile(genomeDepth, 0.75))))
     return
 
 # --------------------------------------
@@ -128,7 +146,7 @@ def coverageStats(bedfile):
 def main():
     parser = argparse.ArgumentParser(description="Calculated read depth statistics from a coverage BED file.")
 
-    parser.add_argument('-i', '--input', type=argparse.FileType('r'), help='Tab delimited BED file that reports regions of zero coverage (\'-\' for stdin)')
+    parser.add_argument('-i', '--input', required=True, type=argparse.FileType('r'), help='Tab delimited BED file that reports regions of zero coverage (\'-\' for stdin)')
     
     # parse the arguments
     args = parser.parse_args()

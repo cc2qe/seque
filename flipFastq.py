@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys
+import sys, argparse
 from string import *
 
 # gets the reverse complement of a DNA strand
@@ -14,17 +14,34 @@ def revcomp(dna):
     return ''.join(lcomp)
 
 
-f = sys.stdin
+# argument parsing
+# -----------------------
 
-i = 1
+def main():
+    parser = argparse.ArgumentParser(description='Flip fastq reads and their base qualities to output the reverse complement reads. Outputs the flipped fastq file to stdout. Useful for changing outward facing reads to inward facing or vice versa')
+    parser.add_argument('input', nargs='?', type=argparse.FileType('r'), default=sys.stdin, help='Input fastq file. (default: stdin)')
 
-for l in f:
+    args = parser.parse_args()
+
+    f = args.input
+
+    i = 1
+    for l in f:
 	l = l.rstrip()
+
+        # revcomp the sequence
 	if i % 4 == 2:
-		print revcomp(l)
+            print revcomp(l)
+                
+        # reverse the base quality string
 	elif i % 4 == 0:
-		print l[::-1]
+            print l[::-1]
+        
+        # print the read names lines as is
 	else:
-		print l
-	
+            print l
 	i += 1
+
+# initialize the script
+if __name__ == '__main__':
+    sys.exit(main())
