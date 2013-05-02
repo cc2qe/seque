@@ -30,8 +30,8 @@ def stdev(depthCount, length):
     stdev = variance**(0.5)
     return stdev
 
-# calculate quartiles or percentiles from the depthList counter.
-# percentile(depthList, 0.5) returns the media
+# calculate quartiles or percentiles from the depth counter.
+# percentile(depthCount, 0.5) returns the media
 def percentile(depthCount, q):
     # perc is percentile value to return
     perc = float
@@ -74,6 +74,11 @@ def percentile(depthCount, q):
 def median(depthCount):
     return percentile(depthCount, 0.5)
 
+def basesCovered(depthCount):
+    length = sum(depthCount.values())
+    bCov = length - depthCount[0]
+    return bCov
+
 # Driver function
 def coverageStats(bedfile):
     # vars for storing the previous line's info
@@ -94,9 +99,13 @@ def coverageStats(bedfile):
     start = int
     end = int
     depth = float
+
+    # number of bases where the coverage is greater than zero
+    chromBasesCovered = 0
+    genomeBasesCovered = 0
     
     # print header
-    print '\t'.join(('chr', 'length', 'basesCovered', 'meanDepth', 'stdevDepth', 'medianDepth', 'q1', 'q3'))
+    print '\t'.join(('chr', 'length', 'basesCovered', 'portionCovered', 'meanDepth', 'stdevDepth', 'medianDepth', 'q1', 'q3'))
 
     for line in bedfile:
         v = line.rstrip().split('\t')
@@ -113,11 +122,14 @@ def coverageStats(bedfile):
                 # even if it's zero coverage
                 chromLength = prevEnd
                 genomeLength += prevEnd
-                print '\t'.join(map(str,(prevChrom, chromLength, mean(chromDepth, chromLength), stdev(chromDepth, chromLength), median(chromDepth), percentile(chromDepth, 0.25), percentile(chromDepth, 0.75))))
 
+                basesCov = basesCovered(chromDepth)
+                fracCov = float(basesCov) / chromLength
+                print '\t'.join(map(str,(prevChrom, chromLength, basesCov, fracCov, mean(chromDepth, chromLength), stdev(chromDepth, chromLength), median(chromDepth), percentile(chromDepth, 0.25), percentile(chromDepth, 0.75))))
+                
                 # start a new counter
                 chromDepth=Counter()
-
+                
         # cast the start end, and depth
         (start, end) = map(int, v[1:3])
         depth = float(v[3])
@@ -126,18 +138,22 @@ def coverageStats(bedfile):
         # add span to depth counts
         chromDepth[depth] += span
         genomeDepth[depth] += span
-        
+
         # store the previous line's data
         prevChrom = chrom
         prevEnd = end
 
     # print the last chromosome
     chromLength = end
-    print '\t'.join(map(str,(chrom, chromLength, mean(chromDepth, chromLength), stdev(chromDepth, chromLength), median(chromDepth), percentile(chromDepth, 0.25), percentile(chromDepth, 0.75))))
+    basesCov = basesCovered(chromDepth)
+    fracCov = float(basesCov) / chromLength
+    print '\t'.join(map(str,(chrom, chromLength, basesCov, fracCov, mean(chromDepth, chromLength), stdev(chromDepth, chromLength), median(chromDepth), percentile(chromDepth, 0.25), percentile(chromDepth, 0.75))))
 
     # print the whole genome coverage statistics    
     genomeLength += end
-    print '\t'.join(map(str,('total', genomeLength, mean(genomeDepth, genomeLength), stdev(chromDepth, chromLength), median(genomeDepth), percentile(genomeDepth, 0.25), percentile(genomeDepth, 0.75))))
+    basesCov = basesCovered(genomeDepth)
+    fracCov = float(basesCov) / genomeLength
+    print '\t'.join(map(str,('total', genomeLength, basesCov, fracCov, mean(genomeDepth, genomeLength), stdev(chromDepth, chromLength), median(genomeDepth), percentile(genomeDepth, 0.25), percentile(genomeDepth, 0.75))))
     return
 
 # --------------------------------------
