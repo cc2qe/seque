@@ -11,9 +11,9 @@ __version__ = "$Revision: 0.0.1 $"
 __date__ = "$Date: 2010/11/10 13:25 $"
 
 parser = argparse.ArgumentParser(description='Trim length of fastq reads')
-parser.add_argument('-i', '--input', type=file, help='Input fastq file')
+parser.add_argument('-i', '--input', type=argparse.FileType('r'), help='Input fastq file')
 parser.add_argument('-s', '--softclip', action='store_true', help='Soft clip trailing bases instead of removing them.')
-parser.add_argument('-l', '--length', type=int, help='Bases to trim to')
+parser.add_argument('-l', '--length', type=int, help='Number of bases to trim to')
 
 args = parser.parse_args()
 

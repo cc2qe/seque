@@ -102,7 +102,7 @@ def coverageStats(bedfile):
     depth = float
 
     # print header
-    print '\t'.join(('chr', 'length', 'basesCovered', 'portionCovered', 'meanDepth', 'stdevDepth', 'medianDepth', 'q1', 'q3'))
+    print '\t'.join(('chr', 'length', 'basesCovered', 'portionCovered', 'mean', 'stdev', 'median', 'q1', 'q3', '2.5%', '97.5%', 'min', 'max', 'range'))
 
     for line in bedfile:
         v = line.rstrip().split('\t')
@@ -122,8 +122,8 @@ def coverageStats(bedfile):
 
                 basesCov = basesCovered(chromDepth)
                 fracCov = float(basesCov) / chromLength
-                print '\t'.join(map(str,(prevChrom, chromLength, basesCov, '%.3g' % fracCov, '%.3g' % mean(chromDepth, chromLength), '%.3g' % stdev(chromDepth, chromLength), int(median(chromDepth)), int(percentile(chromDepth, 0.25)), int(percentile(chromDepth, 0.75)) )))
-                
+
+                print '\t'.join(map(str,(prevChrom, chromLength, basesCov, fracCov, mean(chromDepth, chromLength), stdev(chromDepth, chromLength), int(median(chromDepth)), int(percentile(chromDepth, 0.25)), int(percentile(chromDepth, 0.75)), int(percentile(chromDepth, 0.025)), int(percentile(chromDepth, 0.975)), min(list(chromDepth)), max(list(chromDepth)), max(list(chromDepth)) - min(list(chromDepth)) )))
                 # start a new counter
                 chromDepth=Counter()
                 
@@ -144,13 +144,15 @@ def coverageStats(bedfile):
     chromLength = end
     basesCov = basesCovered(chromDepth)
     fracCov = float(basesCov) / chromLength
-    print '\t'.join(map(str,(prevChrom, chromLength, basesCov, '%.3g' % fracCov, '%.3g' % mean(chromDepth, chromLength), '%.3g' % stdev(chromDepth, chromLength), int(median(chromDepth)), int(percentile(chromDepth, 0.25)), int(percentile(chromDepth, 0.75)) )))
 
+    print '\t'.join(map(str,(prevChrom, chromLength, basesCov, fracCov, mean(chromDepth, chromLength), stdev(chromDepth, chromLength), int(median(chromDepth)), int(percentile(chromDepth, 0.25)), int(percentile(chromDepth, 0.75)), int(percentile(chromDepth, 0.025)), int(percentile(chromDepth, 0.975)), min(list(chromDepth)), max(list(chromDepth)), max(list(chromDepth)) - min(list(chromDepth)) )))
+                
     # print the whole genome coverage statistics    
     genomeLength += end
     basesCov = basesCovered(genomeDepth)
     fracCov = float(basesCov) / genomeLength
-    print '\t'.join(map(str,('total', genomeLength, basesCov, '%.3g' % fracCov, '%.3g' % mean(genomeDepth, genomeLength), '%.3g' % stdev(genomeDepth, genomeLength), int(median(genomeDepth)), int(percentile(genomeDepth, 0.25)), int(percentile(genomeDepth, 0.75)) )))
+
+    print '\t'.join(map(str,('total', genomeLength, basesCov, fracCov, mean(genomeDepth, genomeLength), stdev(genomeDepth, genomeLength), int(median(genomeDepth)), int(percentile(genomeDepth, 0.25)), int(percentile(genomeDepth, 0.75)), int(percentile(genomeDepth, 0.025)), int(percentile(genomeDepth, 0.975)), min(list(genomeDepth)), max(list(genomeDepth)), max(list(genomeDepth)) - min(list(genomeDepth)) )))
     return
 
 # --------------------------------------
