@@ -118,6 +118,7 @@ def coverageStats(bedfile):
                 basesCov = basesCovered(chromDepth)
                 fracCov = float(basesCov) / chromLength
 
+                # print tabulated data for previous chrom
                 print '\t'.join(map(str,(prevChrom, chromLength, basesCov, fracCov, mean(chromDepth, chromLength), stdev(chromDepth, chromLength), int(median(chromDepth)), int(percentile(chromDepth, 0.25)), int(percentile(chromDepth, 0.75)), int(percentile(chromDepth, 0.025)), int(percentile(chromDepth, 0.975)), min(list(chromDepth)), max(list(chromDepth)), max(list(chromDepth)) - min(list(chromDepth)) )))
                 # start a new counter
                 chromDepth=Counter()
@@ -140,15 +141,12 @@ def coverageStats(bedfile):
 
         # store the previous line's data
         prevChrom = chrom
-        prevEnd = end
 
-    # print the last chromosome
-    chromLength = end
-
-    print chromLength
+    # calc bases and fraction of chrom covered
     basesCov = basesCovered(chromDepth)
     fracCov = float(basesCov) / chromLength
 
+    # print tabulated data for last chrom
     print '\t'.join(map(str,(prevChrom, chromLength, basesCov, fracCov, mean(chromDepth, chromLength), stdev(chromDepth, chromLength), int(median(chromDepth)), int(percentile(chromDepth, 0.25)), int(percentile(chromDepth, 0.75)), int(percentile(chromDepth, 0.025)), int(percentile(chromDepth, 0.975)), min(list(chromDepth)), max(list(chromDepth)), max(list(chromDepth)) - min(list(chromDepth)) )))
                 
     # print the whole genome coverage statistics    
