@@ -114,18 +114,16 @@ def coverageStats(bedfile):
             # first make sure you're not looking at the
             # first chrom
             if prevChrom != None:
-                # set the chrom length and iterate the genome length
-                # (assumes BED file has all positions in each chrom
-                # even if it's zero coverage
-                chromLength = prevEnd
-                genomeLength += prevEnd
-
+                # calc bases and fraction of chrom covered.
                 basesCov = basesCovered(chromDepth)
                 fracCov = float(basesCov) / chromLength
 
                 print '\t'.join(map(str,(prevChrom, chromLength, basesCov, fracCov, mean(chromDepth, chromLength), stdev(chromDepth, chromLength), int(median(chromDepth)), int(percentile(chromDepth, 0.25)), int(percentile(chromDepth, 0.75)), int(percentile(chromDepth, 0.025)), int(percentile(chromDepth, 0.975)), min(list(chromDepth)), max(list(chromDepth)), max(list(chromDepth)) - min(list(chromDepth)) )))
                 # start a new counter
                 chromDepth=Counter()
+
+                # set new chromLength to zero
+                chromLength = 0
                 
         # cast the start end, and depth
         (start, end) = map(int, v[1:3])
@@ -136,12 +134,18 @@ def coverageStats(bedfile):
         chromDepth[depth] += span
         genomeDepth[depth] += span
 
+        # add span to the chrom and genome sizes
+        chromLength += span
+        genomeLength += span
+
         # store the previous line's data
         prevChrom = chrom
         prevEnd = end
 
     # print the last chromosome
     chromLength = end
+
+    print chromLength
     basesCov = basesCovered(chromDepth)
     fracCov = float(basesCov) / chromLength
 
