@@ -150,7 +150,6 @@ def coverageStats(bedfile):
     print '\t'.join(map(str,(prevChrom, chromLength, basesCov, fracCov, mean(chromDepth, chromLength), stdev(chromDepth, chromLength), int(median(chromDepth)), int(percentile(chromDepth, 0.25)), int(percentile(chromDepth, 0.75)), int(percentile(chromDepth, 0.025)), int(percentile(chromDepth, 0.975)), min(list(chromDepth)), max(list(chromDepth)), max(list(chromDepth)) - min(list(chromDepth)) )))
                 
     # print the whole genome coverage statistics    
-    genomeLength += end
     basesCov = basesCovered(genomeDepth)
     fracCov = float(basesCov) / genomeLength
 
