@@ -7,6 +7,11 @@ from collections import Counter
 # --------------------------------------
 # define functions
 
+# get the number of entries in the set
+def numEntries(myCounter):
+    numEntries = sum(myCounter.values())
+    return numEntries
+
 # calculate the mean, given a counter and the
 # length of the feature (chromosome or genome)
 def mean(myCounter):
@@ -34,8 +39,9 @@ def stdev(myCounter):
 
     # stdev is sqrt(sum((x-u)^2)/#elements)
     for c in myCounter:
-        sumVar += (c - u)**2
+        sumVar += myCounter[c] * (c - u)**2
     variance = float(sumVar) / numEntries
+    print 'var ', variance
     stdev = variance**(0.5)
     return stdev
 
@@ -84,32 +90,25 @@ def median(myCounter):
 
 # Driver function
 def fragmentStats(bamfile):
-
-    myBam = pysam.Samfile(bamfile.name, 'rb')
+    if bamfile.name == '<stdin>':
+        myBam = pysam.Samfile('-', 'rb')
+    else:
+        myBam = pysam.Samfile(bamfile.name, 'rb')
 
     # counters to hold the depth counts over the chromosome
     # and the whole genome
     mappedFrags = Counter()
 
-
     for samRec in myBam:
-        print samRec
-        continue
 
-        v = samRec.rstrip().split('\t')
-        samFlag = int(v[1])
-        fragSize = int(v[8])
+#        if samRec.is_proper_pair and samRec.is_read1:
+        if samRec.is_proper_pair and not samRec.is_reverse:
+            mappedFrags[abs(samRec.tlen)] += 1
 
-        isMapped = samFlag & 2
-        isForwardStrand = samFlag & 32
-
-        if isMapped and isForwardStrand:
-            mappedFrags[fragSize] += 1
-
-    print mappedFrags
     print 'median ', median(mappedFrags)
     print 'mean ', mean(mappedFrags)
     print 'stdev ', stdev(mappedFrags)
+    print 'numRecs ', numEntries(mappedFrags)
     
 
     return
