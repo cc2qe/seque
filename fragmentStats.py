@@ -41,7 +41,6 @@ def stdev(myCounter):
     for c in myCounter:
         sumVar += myCounter[c] * (c - u)**2
     variance = float(sumVar) / numEntries
-    print 'var ', variance
     stdev = variance**(0.5)
     return stdev
 
