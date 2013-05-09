@@ -166,7 +166,8 @@ def coverageStats(bedfile):
 # argument parsing
 
 def main():
-    parser = argparse.ArgumentParser(description="coverageStats.py\n\
+    parser = argparse.ArgumentParser(description="\
+coverageStats.py\n\
 author: Colby Chiang (cc2qe@virginia.edu)\n\
 version: 0.0.1\n\
 description: Calculate read depth statistics from a coverage BED file.", formatter_class=RawTextHelpFormatter)
