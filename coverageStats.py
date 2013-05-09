@@ -31,7 +31,7 @@ def stdev(depthCount, length):
 
     # stdev is sqrt(sum((x-u)^2)/#elements)
     for d in depthCount:
-        sumVar += (d - u)**2
+        sumVar += depthCount[d] * (d - u)**2
     variance = float(sumVar) / length
     stdev = variance**(0.5)
     return stdev
