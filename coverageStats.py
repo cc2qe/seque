@@ -167,9 +167,9 @@ def coverageStats(bedfile):
 
 def main():
     parser = argparse.ArgumentParser(description="coverageStats.py\n\
-Author: Colby Chiang (cc2qe@virginia.edu)\n\
-Version: 0.0.1\n\
-Description: Calculate read depth statistics from a coverage BED file.", formatter_class=RawTextHelpFormatter)
+author: Colby Chiang (cc2qe@virginia.edu)\n\
+version: 0.0.1\n\
+description: Calculate read depth statistics from a coverage BED file.", formatter_class=RawTextHelpFormatter)
 
     parser.add_argument('bedfile', nargs='?', type=argparse.FileType('r'), default=None, help='Tab delimited BED file that reports regions of zero coverage (default: stdin)')
     
