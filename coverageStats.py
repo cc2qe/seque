@@ -2,6 +2,12 @@
 
 import argparse, sys
 from collections import Counter
+from argparse import RawTextHelpFormatter
+
+__author__ = "Colby Chiang (cc2qe@virginia.edu)"
+__version__ = "$Revision: 0.0.1 $"
+__date__ = "$Date: 2013-05-09 14:31 $"
+
 
 # --------------------------------------
 # define functions
@@ -160,15 +166,26 @@ def coverageStats(bedfile):
 # argument parsing
 
 def main():
-    parser = argparse.ArgumentParser(description="Calculated read depth statistics from a coverage BED file.")
+    parser = argparse.ArgumentParser(description="coverageStats.py\n\
+Author: Colby Chiang (cc2qe@virginia.edu)\n\
+Version: 0.0.1\n\
+Description: Calculate read depth statistics from a coverage BED file.", formatter_class=RawTextHelpFormatter)
 
-    parser.add_argument('bedfile', nargs='?', type=argparse.FileType('r'), default=sys.stdin, help='Tab delimited BED file that reports regions of zero coverage (default: stdin)')
+    parser.add_argument('bedfile', nargs='?', type=argparse.FileType('r'), default=None, help='Tab delimited BED file that reports regions of zero coverage (default: stdin)')
     
     # parse the arguments
     args = parser.parse_args()
 
     # store into global values
     bedfile = args.bedfile
+
+    # if no bedfile, check if part of pipe and if so, read stdin.
+    if bedfile == None:
+        if sys.stdin.isatty():
+            parser.print_help()
+            exit(1)
+        else:
+            bedfile = sys.stdin
     
     coverageStats(bedfile)
     bedfile.close()
