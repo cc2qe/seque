@@ -162,13 +162,13 @@ def coverageStats(bedfile):
 def main():
     parser = argparse.ArgumentParser(description="Calculated read depth statistics from a coverage BED file.")
 
-    parser.add_argument('-i', '--input', required=True, type=argparse.FileType('r'), help='Tab delimited BED file that reports regions of zero coverage (\'-\' for stdin)')
+    parser.add_argument('bedfile', nargs='?', type=argparse.FileType('r'), default=sys.stdin, help='Tab delimited BED file that reports regions of zero coverage (default: stdin)')
     
     # parse the arguments
     args = parser.parse_args()
 
     # store into global values
-    bedfile = args.input
+    bedfile = args.bedfile
     
     coverageStats(bedfile)
     bedfile.close()
