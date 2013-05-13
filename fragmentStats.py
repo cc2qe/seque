@@ -88,11 +88,17 @@ def median(myCounter):
     return percentile(myCounter, 0.5)
 
 # Driver function
-def fragmentStats(bamfile):
+def fragmentStats(bamfile, isSam):
     if bamfile.name == '<stdin>':
-        myBam = pysam.Samfile('-', 'rb')
+        if isSam:
+            myBam = pysam.Samfile('-', 'r')
+        else:
+            myBam = pysam.Samfile('-', 'rb')
     else:
-        myBam = pysam.Samfile(bamfile.name, 'rb')
+        if isSam:
+            myBam = pysam.Samfile(bamfile.name, 'r')
+        else:
+            myBam = pysam.Samfile(bamfile.name, 'rb')
 
     # counters to hold the depth counts over the chromosome
     # and the whole genome
@@ -116,18 +122,20 @@ def fragmentStats(bamfile):
 # argument parsing
 
 def main():
-    parser = argparse.ArgumentParser(description="Calculated fragment length statistics from a coverage SAM file.")
+    parser = argparse.ArgumentParser(description="Calculated fragment length statistics from a BAM file.")
 
-    parser.add_argument('-i', '--input', required=True, type=argparse.FileType('r'), help='SAM file (\'-\' for stdin)')
+    parser.add_argument('-i', '--input', required=True, type=argparse.FileType('r'), help='BAM file (\'-\' for stdin)')
+    parser.add_argument('-S', action='store_true', help='Input is SAM format')
     
     # parse the arguments
     args = parser.parse_args()
 
     # store into global values
     bamfile = args.input
+    isSam = args.S
     
     # call the driver function
-    fragmentStats(bamfile)
+    fragmentStats(bamfile, isSam)
 
     # close the file
     bamfile.close()
