@@ -28,13 +28,21 @@ def getSeqLengths(fasta):
 
 def main():
     parser = argparse.ArgumentParser(description="Read a fasta file and output a tab delimited file of sequence names and lengths.")
-    parser.add_argument('-i', '--input', type=argparse.FileType('r'), default=sys.stdin, help='Fasta file to read (default: stdin)')
+    parser.add_argument('fasta', nargs='?', type=argparse.FileType('r'), default=None, help='Fasta file to read (default: stdin)')
     
     # parse the arguments
     args = parser.parse_args()
 
+    # if no input, check if part of pipe and if so, read stdin.
+    if args.fasta == None:
+        if sys.stdin.isatty():
+            parser.print_help()
+            exit(1)
+        else:
+            args.fasta = sys.stdin
+
     # store into global values
-    fasta = args.input
+    fasta = args.fasta
 
     # call the driver function
     getSeqLengths(fasta)
