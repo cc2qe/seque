@@ -88,7 +88,7 @@ def median(myCounter):
     return percentile(myCounter, 0.5)
 
 # Driver function
-def fragmentStats(bamfile, isSam):
+def fragmentStats(bamfile, isSam, nonProper):
     if bamfile.name == '<stdin>':
         if isSam:
             myBam = pysam.Samfile('-', 'r')
@@ -104,11 +104,21 @@ def fragmentStats(bamfile, isSam):
     # and the whole genome
     mappedFrags = Counter()
 
-    for samRec in myBam:
+    if not nonProper:
+        for samRec in myBam:
+            # if samRec.is_proper_pair and samRec.is_read1:
+            if samRec.is_proper_pair and not samRec.is_reverse:
+                mappedFrags[abs(samRec.tlen)] += 1
+    else:
+        for samRec in myBam:
+            readChrom = myBam.getrname(samRec.tid)
+            mateChrom = myBam.getrname(samRec.mrnm)
 
-#        if samRec.is_proper_pair and samRec.is_read1:
-        if samRec.is_proper_pair and not samRec.is_reverse:
-            mappedFrags[abs(samRec.tlen)] += 1
+            if not samRec.is_unmapped and not samRec.mate_is_unmapped and readChrom == mateChrom:
+                mappedFrag[abs(samRec.tlen)] += 1
+                
+
+            print readChrom, mateChrom
 
     print 'median ', median(mappedFrags)
     print 'mean ', mean(mappedFrags)
@@ -125,17 +135,19 @@ def main():
     parser = argparse.ArgumentParser(description="Calculated fragment length statistics from a BAM file.")
 
     parser.add_argument('-i', '--input', required=True, type=argparse.FileType('r'), help='BAM file (\'-\' for stdin)')
-    parser.add_argument('-S', action='store_true', help='Input is SAM format')
+    parser.add_argument('-S', '--sam', action='store_true', help='Input is SAM format')
+    parser.add_argument('-q', '--non_proper', action='store_true', help='Consider non-proper pairs as well')
     
     # parse the arguments
     args = parser.parse_args()
 
     # store into global values
     bamfile = args.input
-    isSam = args.S
+    isSam = args.sam
+    nonProper = args.non_proper
     
     # call the driver function
-    fragmentStats(bamfile, isSam)
+    fragmentStats(bamfile, isSam, nonProper)
 
     # close the file
     bamfile.close()
