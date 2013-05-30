@@ -1,17 +1,14 @@
 #!/usr/bin/env python
 
-
 import sys
 import argparse
 import pdb
 import pysam
 
-
 def find_insert(pos, regions):
     for region in regions:
         if pos >= region.start and pos <= region.end:
             return region
-
 
 class Region():
     def __init__(self, chr, start, end, coverage):
@@ -87,23 +84,29 @@ class BedChrom():
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Generate a BED graph of "
-        "jumping library coverage.")
-    parser.add_argument('samfile', nargs='?', type=pysam.Samfile,
-        default=sys.stdin, help="Input samfile. Defaults to stdin.")
-    parser.add_argument('bedgraph', nargs='?', type=argparse.FileType('w'),
-        default=sys.stdout, help="Output bedgraph file. Defaults to stdout.")
+    parser = argparse.ArgumentParser(description="Generate a BED graph of jumping library coverage.")
+    parser.add_argument('-b', '--bam', required=False, type=pysam.Samfile, default=None, help="Input bamfile. (default: stdin)")
+    parser.add_argument('-bg', '--bed', required=False, type=argparse.FileType('w'), default=sys.stdout, help="Output bedgraph file. (default: stdout)")
     #parser.add_argument('genome', type=argparse.FileType('r'),
     #    help="Tab delimited file of chromosome sizes in genome\n"
     #    "<chromName><TAB><chromSize>")
 
     args = parser.parse_args()
 
-    samfile = args.samfile
-    bedgraph = args.bedgraph
+    # if no input, check if part of pipe and if so, read stdin bamfile.
+    if args.bam == None:
+        if sys.stdin.isatty():
+            parser.print_help()
+            exit(1)
+        else:
+            args.bam = pysam.Samfile('-', 'rb')
+
+    # store into global vars
+    bamfile = args.bam
+    bedgraph = args.bed
 
     genome = {}
-    for contig in samfile.header['SQ']:
+    for contig in bamfile.header['SQ']:
         genome[contig['SN']] = contig['LN']
 
     #genome = []
@@ -115,10 +118,10 @@ if __name__ == '__main__':
     bed_chrom = None
 
 #    pdb.set_trace()
-    for read in samfile:
+    for read in bamfile:
         # Skip unmapped reads
-        if 0 <= read.tid < samfile.nreferences:
-            chrom_name = samfile.getrname(read.tid)
+        if 0 <= read.tid < bamfile.nreferences:
+            chrom_name = bamfile.getrname(read.tid)
         else:
             continue
 
@@ -142,3 +145,7 @@ if __name__ == '__main__':
 
             # Print regions up to start of this read
             bed_chrom.write_out(bedgraph, read.pos)
+
+    # print the end of the last chromosome before finishing
+    if bed_chrom:
+        bed_chrom.write_out(bedgraph, sys.maxint)
