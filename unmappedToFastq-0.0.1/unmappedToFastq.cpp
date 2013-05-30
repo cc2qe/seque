@@ -50,13 +50,13 @@ int main( int argc, char *argv[] )
 {
 	if ( argc != 3 ) /* argc should be 2 for correct execution */
 	{
-		cout << "\nProgram: unmappedToFastq\n\
+	  cout << "usage: " << argv[0] << " [clipTo] [bamFile]\n" << endl;
+	  cout << "Program: unmappedToFastq\n\
 Version: 0.0.1\n\
-Contact: Colby Chiang <cchiang3@gmail.com>\n\
+Contact: Colby Chiang <cc2qe@virginia.edu>\n\
 Info: Finds unaligned reads in a paired BAM file,\n\
   clips the unaligned end(s) to a given length,\n\
-  and outputs the pair in fastq. (BAM file must be name-sorted)" << endl;
-		cout << "\n  usage: " << argv[0] << " [clipTo] [bamFile]\n" << endl;
+  and outputs the pair in fastq. (BAM file must be name-sorted)\n" << endl;
 	}
 
 	else

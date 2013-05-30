@@ -1,4 +1,4 @@
-CFLAGS = -I /scr/talkowski/tools/bin/samtools-current -L/scr/talkowski/tools/bin/samtools-current -lbam -lz
+CFLAGS = -I ./samtools-0.1.18 -L./samtools-0.1.18 -lbam -lz
 
 unmappedToFastq: unmappedToFastq.cpp
 	g++ -o unmappedToFastq unmappedToFastq.cpp ${CFLAGS}
