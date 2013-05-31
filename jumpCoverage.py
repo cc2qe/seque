@@ -42,10 +42,10 @@ class Region():
     def __repr__(self):
         return "%s\t%s\t%s\t%s" % (self.chr, self.start, self.end, self.cov)
 
-
 class BedChrom():
-    def __init__(self, region):
+    def __init__(self, region, chromLength):
         self.regions = [region]
+        self.chromLength = chromLength
 
     def insert_region(self, new_region):
         left_insert = find_insert(new_region.start, self.regions)
@@ -76,6 +76,9 @@ class BedChrom():
     def write_out(self, outfile, pos):
         for region in self.regions:
             if region.start < pos:
+                # don't print region end beyond the length of the chromosome
+                if region.end > self.chromLength:
+                    region.end = self.chromLength
                 outfile.write("%s\n" % str(region))
             else:
                 i = self.regions.index(region)
@@ -134,7 +137,7 @@ if __name__ == '__main__':
             # print "Beginning coverage calculation over %s" % chrom_name
             curr_chr = chrom_name
             chr_size = int(genome[curr_chr])
-            bed_chrom = BedChrom(Region(curr_chr, 0, chr_size, 0))
+            bed_chrom = BedChrom(Region(curr_chr, 0, chr_size, 0), chr_size)
 
         # Add it
         if read.is_proper_pair and read.tlen > 0:
