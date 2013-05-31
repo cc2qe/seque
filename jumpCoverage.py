@@ -149,3 +149,6 @@ if __name__ == '__main__':
     # print the end of the last chromosome before finishing
     if bed_chrom:
         bed_chrom.write_out(bedgraph, sys.maxint)
+    
+    # close the bed file
+    bedfile.close()
