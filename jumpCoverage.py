@@ -151,4 +151,4 @@ if __name__ == '__main__':
         bed_chrom.write_out(bedgraph, sys.maxint)
     
     # close the bed file
-    bedfile.close()
+    bedgraph.close()
