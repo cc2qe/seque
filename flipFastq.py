@@ -19,9 +19,17 @@ def revcomp(dna):
 
 def main():
     parser = argparse.ArgumentParser(description='Flip fastq reads and their base qualities to output the reverse complement reads. Outputs the flipped fastq file to stdout. Useful for changing outward facing reads to inward facing or vice versa')
-    parser.add_argument('input', nargs='?', type=argparse.FileType('r'), default=sys.stdin, help='Input fastq file. (default: stdin)')
+    parser.add_argument('input', nargs='?', type=argparse.FileType('r'), default=None, help='Input fastq file. (default: stdin)')
 
     args = parser.parse_args()
+
+    # if no input, check if part of pipe and if so, read stdin.
+    if args.input == None:
+        if sys.stdin.isatty():
+            parser.print_help()
+            exit(1)
+        else:
+            args.input = sys.stdin
 
     f = args.input
 
