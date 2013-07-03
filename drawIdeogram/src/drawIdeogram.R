@@ -1,7 +1,7 @@
 # based on paintCytobands from the quantsmooth package by David Duffy
 # Colby Chiang (cc2qe@virginia.edu)
 
-paintCytobands<-function(chrom, pos=c(0,0), units=c("cM","bases","ISCN"), genome=c('hg18', 'hg19', 'mm9', 'rn4'), width=0.4, length.out, bands="major", orientation=c("h","v"), legend=TRUE, cex.leg=0.7, bleach=0, ...) {
+drawIdeogram<-function(chrom, pos=c(0,0), units="bases", genome=c('hg18', 'hg19', 'mm9', 'rn4'), width=0.4, length.out, bands="major", orientation=c("h","v"), legend=TRUE, cex.leg=0.7, bleach=0, ...) {
   bleacher<-function(x) { (x * (1-bleach)) + bleach}
   chrom.bands<-NULL;rm(chrom.bands) # trick to satisfy R check
   
@@ -138,4 +138,27 @@ qs.semicircle <- function(base.x, base.y, base.length, height=base.length, side=
     poly=polygon(x,y,...),
     line=lines(x,y,...)
   )
+}
+
+getChromLength <- function(chrom, genome=c('hg18', 'hg19', 'mm9', 'rn4')) {
+  # set the cytoband annotation file
+  #data(chrom.bands,package="quantsmooth",envir=environment())
+  if (genome == 'hg19') {
+  	cytoFile <- "~/code/seque/drawIdeogram/cytoband_annot/hg19.cytoR.txt.gz"
+  }
+  else if (genome == 'hg18') {
+  	cytoFile <- "~/code/seque/drawIdeogram/cytoband_annot/hg18.cytoR.txt.gz"
+  }
+  else if (genome == 'mm9') {
+  	cytoFile <- "~/code/seque/drawIdeogram/cytoband_annot/mm9.cytoR.txt.gz"
+  }
+  else if (genome == 'rn4') {
+  	cytoFile <- "~/code/seque/drawIdeogram/cytoband_annot/rn4.cytoR.txt.gz"
+  }
+
+  chrom.bands <- read.table(cytoFile, sep="\t", col.names=c("chr", "arm", "band", "ISCN.top", "ISCN.bot", "bases.top", "bases.bot", "stain", "cM.top", "cM.bot", "n.markers", "p.markers"))
+  
+  chromdata<-subset(chrom.bands, chrom.bands$chr==chrom)
+  
+  return(chromdata$bases.bot[nrow(chromdata)])
 }
