@@ -42,33 +42,39 @@ description: Generated a BED file of windowed GC content from a fasta file")
 # primary function
 def gcContent(fasta, window, step, bed):
     seqName = None
-    seqLength = 0
-
     prevSeqName = None
 
-    seqcount = 0
-    testseq = ''
+    seqLen = 0
+    seq = ''
+    remainder = ''
 
-    for line in fasta:
-        line = line.rstrip()
+    startPos = 0
 
-        if len(line) != 0 and line[0] == '>':
-            if seqName != None:
-                print '%s\t%s' % (seqName, seqLength)
-            seqName = line.split()[0].replace('>', '')
-            seqLength = 0
-        else:
-            while seqcount < window:
-                getNumber = min(len(line), window-seqcount)
-                testseq += line[0:getNumber]
-                remainder = line[getNumber:]
-                seqcount += getNumber
-            print seqcount
-            print testseq
-            print sum(map(testseq.count, ["G", "C", 'g', 'c']))
-            seqcount = 0
-            testseq = ''
 
+    while 1:
+        while seqLen < window:
+            line = fasta.readline().rstrip()
+            line = remainder + line
+
+            getNumber = min(len(line), window-seqLen)
+            seq += line[0:getNumber]
+            remainder = line[getNumber:]
+            seqLen += getNumber
+
+            if line == '':
+                break
+
+        print seqLen
+        print seq
+        gcCount = sum(map(seq.count, ['G', 'C', 'g', 'c']))
+        print gcCount
+        print gcCount/float(seqLen)
+        remainder = seq[step:] + remainder # i think it's still possible to have a remainder at this point
+        seqLen = 0
+        seq = ''
+
+        if line == '':
+            break
     return
 
 # --------------------------------------
