@@ -55,17 +55,13 @@ def gcContent(fasta, window, step, bed):
     startPos = 0
 
     while 1:
-        while seqLen < window:
+        while seqLen < window and len(remainder) != 0:
             # before reading the next line, burn through the remainder
             getNumber = min(len(remainder), window-seqLen)
             seq += remainder[0:getNumber]
             remainder = remainder[getNumber:]
             seqLen += getNumber
 
-            if len(remainder) == 0:
-                break
-
-        # careful of this at the end of a chromosome
         while seqLen < window:
             line = fasta.readline().rstrip()
             if line == '':
@@ -76,25 +72,29 @@ def gcContent(fasta, window, step, bed):
                 break
 
             line = remainder + line
+            #print 'line with rem', line
 
             getNumber = min(len(line), window-seqLen)
             seq += line[0:getNumber]
             remainder = line[getNumber:]
             seqLen += getNumber
 
-        print 'seq', seq
-        print 'seqlen', seqLen
-        print 'rem', remainder
+        #print 'seq', seq
+        #print 'seqlen', seqLen
+        #print 'rem', remainder
         gcCount = sum(map(seq.count, ['G', 'C', 'g', 'c']))
-        print gcCount
+        #print gcCount
 
         gcFrac = gcCount/float(seqLen)
         # maybe this should be min startPos+step or end of chrom            
         print '\t'.join(map(str, [chrom, startPos, startPos+step, gcFrac]))
     
-        chrom = nextChrom
         startPos += step
-        remainder = seq[step:] + remainder # i think it's still possible to have a remainder at this point
+        # careful of this at the end of a chromosome
+        if chrom == nextChrom:
+            remainder = seq[step:] + remainder # i think it's still possible to have a remainder at this point
+        chrom = nextChrom
+        #print 'rem at bottom', remainder
         seqLen = 0
         seq = ''
 
