@@ -41,19 +41,40 @@ description: Generated a BED file of windowed GC content from a fasta file")
 
 # primary function
 def gcContent(fasta, window, step, bed):
-    seqName = None
-    prevSeqName = None
+    # fasta should start with a >chrom line, so we'll grab the first one
+    line = fasta.readline().rstrip()
+    if line[0] == '>':
+        chrom = line[1:]
+    else:
+        sys.stderr.write("Error: fasta does not begin with a >chrom line\n")
+    nextChrom = chrom
 
     seqLen = 0
     seq = ''
     remainder = ''
-
     startPos = 0
-
 
     while 1:
         while seqLen < window:
+            # before reading the next line, burn through the remainder
+            getNumber = min(len(remainder), window-seqLen)
+            seq += remainder[0:getNumber]
+            remainder = remainder[getNumber:]
+            seqLen += getNumber
+
+            if len(remainder) == 0:
+                break
+
+        # careful of this at the end of a chromosome
+        while seqLen < window:
             line = fasta.readline().rstrip()
+            if line == '':
+                break
+            
+            if line[0] == '>':
+                nextChrom = line[1:]
+                break
+
             line = remainder + line
 
             getNumber = min(len(line), window-seqLen)
@@ -61,14 +82,18 @@ def gcContent(fasta, window, step, bed):
             remainder = line[getNumber:]
             seqLen += getNumber
 
-            if line == '':
-                break
-
-        print seqLen
-        print seq
+        print 'seq', seq
+        print 'seqlen', seqLen
+        print 'rem', remainder
         gcCount = sum(map(seq.count, ['G', 'C', 'g', 'c']))
         print gcCount
-        print gcCount/float(seqLen)
+
+        gcFrac = gcCount/float(seqLen)
+        # maybe this should be min startPos+step or end of chrom            
+        print '\t'.join(map(str, [chrom, startPos, startPos+step, gcFrac]))
+    
+        chrom = nextChrom
+        startPos += step
         remainder = seq[step:] + remainder # i think it's still possible to have a remainder at this point
         seqLen = 0
         seq = ''
