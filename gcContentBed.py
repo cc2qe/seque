@@ -87,7 +87,7 @@ def gcContent(fasta, window, step, bed):
 
         gcFrac = gcCount/float(seqLen)
         # maybe this should be min startPos+step or end of chrom            
-        print '\t'.join(map(str, [chrom, startPos, startPos+step, gcFrac]))
+        bed.write('\t'.join(map(str, [chrom, startPos, startPos+step, gcFrac])) + '\n')
     
         startPos += step
         # careful of this at the end of a chromosome
