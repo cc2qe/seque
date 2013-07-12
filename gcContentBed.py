@@ -17,7 +17,7 @@ author: " + __author__ + "\n\
 version: " + __version__ + "\n\
 description: Generated a BED file of windowed GC content from a fasta file")
     parser.add_argument('-w', '--window', type=int, required=True, help='window size to calculate GC content over')
-    parser.add_argument('-s', '--step', type=int, default=None, help='step size (default: window)')
+    parser.add_argument('-s', '--step', type=int, default=None, help='step size (default: WINDOW)')
     parser.add_argument('-b', '--bed', required=False, type=argparse.FileType('w'), default=sys.stdout, help='BED file to output results (default: stdout)')
     parser.add_argument('fasta', nargs='?', type=argparse.FileType('r'), default=None, help='fasta file to read. If \'-\' or absent then defaults to stdin.')
 
