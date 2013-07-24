@@ -1,7 +1,7 @@
 # based on paintCytobands from the quantsmooth package by David Duffy
 # Colby Chiang (cc2qe@virginia.edu)
 
-drawIdeogram<-function(chrom, pos=c(0,0), units="bases", genome=c('hg18', 'hg19', 'mm9', 'rn4'), width=0.4, length.out, bands="major", orientation=c("h","v"), legend=TRUE, cex.leg=0.7, bleach=0, ...) {
+drawIdeogram<-function(chrom, pos=c(0,0), units="bases", genome=c('hg18', 'hg19', 'mm9', 'mm10', 'rn4'), width=0.4, length.out, bands="major", orientation=c("h","v"), legend=TRUE, cex.leg=0.7, bleach=0, ...) {
   bleacher<-function(x) { (x * (1-bleach)) + bleach}
   chrom.bands<-NULL;rm(chrom.bands) # trick to satisfy R check
   
