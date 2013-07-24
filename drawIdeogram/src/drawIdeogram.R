@@ -7,18 +7,8 @@ drawIdeogram<-function(chrom, pos=c(0,0), units="bases", genome=c('hg18', 'hg19'
   
   # set the cytoband annotation file
   #data(chrom.bands,package="quantsmooth",envir=environment())
-  if (genome == 'hg19') {
-  	cytoFile <- "~/code/seque/drawIdeogram/annot/hg19.cytoR.txt.gz"
-  }
-  else if (genome == 'hg18') {
-  	cytoFile <- "~/code/seque/drawIdeogram/annot/hg18.cytoR.txt.gz"
-  }
-  else if (genome == 'mm9') {
-  	cytoFile <- "~/code/seque/drawIdeogram/annot/mm9.cytoR.txt.gz"
-  }
-  else if (genome == 'rn4') {
-  	cytoFile <- "~/code/seque/drawIdeogram/annot/rn4.cytoR.txt.gz"
-  }
+  
+  cytoFile <- paste("~/code/seque/drawIdeogram/annot/", genome, ".cytoR.txt.gz")
   
   chrom.bands <- read.table(cytoFile, sep="\t", col.names=c("chr", "arm", "band", "ISCN.top", "ISCN.bot", "bases.top", "bases.bot", "stain", "cM.top", "cM.bot", "n.markers", "p.markers"))
   
