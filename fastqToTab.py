@@ -16,6 +16,7 @@ fastqToTab.py\n\
 author: " + __author__ + "\n\
 version: " + __version__ + "\n\
 description: convert a fastq file into a 4 column tab delimited file")
+    parser.add_argument('-i', '--interleaved', required=False, action='store_true', help='fastq file is interleaved, with pairs consecutive (outputs 8 line tab delimited file')
     parser.add_argument('fastq', nargs='?', type=argparse.FileType('r'), default=None, help='fastq file to read. If \'-\' or absent then defaults to stdin.')
 
     # parse the arguments
@@ -33,11 +34,17 @@ description: convert a fastq file into a 4 column tab delimited file")
     return args
 
 # primary function
-def fastqToTab(fastq):
+def fastqToTab(fastq, interleaved):
     counter = 1
-    for line in fastq:
 
-        if counter % 4 == 0:
+    # if interleaved then output batches of 8 columns with both paired-end reads
+    if interleaved:
+        interval = 8
+    else:
+        interval = 4
+
+    for line in fastq:
+        if counter % interval == 0:
             sys.stdout.write(line)
         else:
             sys.stdout.write(line.rstrip() + "\t")
@@ -55,9 +62,10 @@ def main():
 
     # store into global values
     fastq = args.fastq
+    interleaved = args.interleaved
     
     # call primary function
-    fastqToTab(fastq)
+    fastqToTab(fastq, interleaved)
 
     # close the input file
     fastq.close()
