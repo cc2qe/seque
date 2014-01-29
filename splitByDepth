@@ -1,0 +1,104 @@
+#!/usr/bin/env python
+import sys
+import getopt
+import string
+from optparse import OptionParser
+
+def splitByDepth(inFile,numReads):
+	if inFile == "stdin":
+		data = sys.stdin
+	else:
+		data = open(inFile, 'r')
+
+	# initiate line1 and line2 to BED objects
+	line1 = data.readline().strip()
+	if not line1:
+		return
+	bed1 = BEDGRAPH(line1.strip().split('\t'))
+	bedFirst = bed1
+	totalDepth = bed1.depth
+
+	line2 = data.readline().strip()
+	if not line2:
+		# write out
+		print bedFirst.chrom + "\t" + str(bedFirst.pos1) + "\t" + str(bed1.pos2) + "\t" + str(totalDepth) + "\t" + str(bed1.pos2-bedFirst.pos1)
+		return
+	bed2 = BEDGRAPH(line2.strip().split('\t'))
+
+	while 1:
+		if bed1.chrom == bed2.chrom and bed1.pos2 == bed2.pos1 and totalDepth <= numReads:
+			# iterate the depth
+			totalDepth = totalDepth + bed2.depth
+
+			# shift and grab new bed2
+			bed1 = bed2
+			line2 = data.readline().strip()
+			if not line2:
+				break
+			bed2 = BEDGRAPH(line2.strip().split('\t'))
+		else:
+			# write out
+			print bedFirst.chrom + "\t" + str(bedFirst.pos1) + "\t" + str(bed1.pos2) + "\t" + str(totalDepth) + "\t" + str(bed1.pos2-bedFirst.pos1)
+
+			# shift and grab new bed2
+			bedFirst = bed2
+			bed1 = bedFirst
+			totalDepth = bed1.depth
+			line2 = data.readline().strip()
+			if not line2:
+				break
+			bed2 = BEDGRAPH(line2.strip().split('\t'))
+
+	# remember to write out the last entry at the end of the file
+	print bedFirst.chrom + "\t" + str(bedFirst.pos1) + "\t" + str(bed1.pos2) + "\t" + str(totalDepth) + "\t" + str(bed1.pos2-bedFirst.pos1)
+
+
+###############################################
+class BEDGRAPH (object):
+	"""
+	__very__ basic class for bedgraph coverage file.
+	"""
+	def __init__(self, bedList = []):
+		if len(bedList) > 0:
+			self.chrom  = bedList[0]
+			self.pos1   = int(bedList[1])
+			self.pos2   = int(bedList[2])
+			self.depth  = int(bedList[3])
+			self.valid  = 1
+		else:
+			self.valid = 0
+			self.query = 'null'
+###############################################			
+			
+class Usage(Exception):
+	def __init__(self, msg):
+		self.msg = msg		
+
+def main():
+	
+	usage = """%prog -i <file>
+
+splitByDepth v0.1.1
+Author: Ira Hall and Colby Chiang
+Description: make windows containing a max of N number of reads. Input is a bedgraph file with chrom, pos1, pos2, depth. 
+	"""
+	parser = OptionParser(usage)
+	
+	parser.add_option("-i", "--inFile", dest="inFile", 
+		help="A SAM file or standard input (-i stdin).",
+		metavar="FILE")
+	parser.add_option("-n", "--numReads", dest="numReads",default=500000, type = "int",
+		help="The max number of reads to allow per window; Default=500,000",
+		metavar="INT")
+	(opts, args) = parser.parse_args()
+	if opts.inFile is None:
+		parser.print_help()
+		print
+	else:
+		try:
+			splitByDepth(opts.inFile, opts.numReads)
+		except IOError as err:
+			sys.stderr.write("IOError " + str(err) + "\n");
+			return
+if __name__ == "__main__":
+	sys.exit(main()) 
