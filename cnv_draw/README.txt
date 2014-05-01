@@ -44,7 +44,7 @@ Col	Description
 To get the first 16 columns, you can download the refGene data from UCSC at the following location: http://hgdownload.cse.ucsc.edu/goldenPath/hg18/database/refGene.txt.gz
 
 It's often useful to filter this down to just get genes in your region. I use this quick awk script
-cat /Users/colby/Documents/chgr/geneTiling/exonsBed/newExons/refGene.hg18.txt | awk 'BEGIN {FS="\t"; OFS="\t"} { if ($3=="chr2" && $5>=144750000 && $6<=152400000) print }' | sort -nk5,5 | awk 'BEGIN {FS="\t"; OFS="\t"; GENE="INITIATE"; MAX_SIZE=0; STORED_ROW=""} { if ($13==GENE && ($6-$5)>MAX_SIZE) {MAX_SIZE=($6-$5); STORED_ROW=$0} else { if (GENE!=$13) { if (GENE!="INITIATE") {print STORED_ROW;} GENE=$13; STORED_ROW=$0 } } } END { print STORED_ROW}'
+curl -s http://hgdownload.cse.ucsc.edu/goldenpath/hg19/database/refGene.txt.gz | gzip -cdfq | awk 'BEGIN {FS="\t"; OFS="\t"} { if ($3=="chr2" && $5>=144750000 && $6<=152400000) print }' | sort -nk5,5 | awk 'BEGIN {FS="\t"; OFS="\t"; GENE="INITIATE"; MAX_SIZE=0; STORED_ROW=""} { if ($13==GENE && ($6-$5)>MAX_SIZE) {MAX_SIZE=($6-$5); STORED_ROW=$0} else { if (GENE!=$13) { if (GENE!="INITIATE") {print STORED_ROW;} GENE=$13; STORED_ROW=$0 } } } END { print STORED_ROW}'
 
 Don't forget to add columns 17 and 18 before trying to load it into importGenes though.
 
