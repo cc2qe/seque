@@ -214,7 +214,7 @@ def meiotic_trace(myVar, pedigree, samp_id):
         # 00: allele came from mother's mother
         # 01: allele came from mother's father
         # 10: allele came from father's mother
-    # 11: allele came from father's father
+        # 11: allele came from father's father
         # -1: unknown
     trace = [-1] * 2
 
