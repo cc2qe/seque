@@ -87,16 +87,29 @@ def ld_continuous(vcf_in, var_list, samp_set, field, alg, index_var, labels, col
         # read the genotypes
         if field == 'GT' or field_idx == -1:
             gt_list = []
+                
             for i in samp_cols:
                 gt_str = v[i].split(':')[0]
                 if '.' in gt_str:
                     gt_list.append(-1)
                     continue
 
-                sep = '/'
-                if sep not in gt_str:
+                # use phased genotypes for alg D
+                elif alg == 'D':
                     sep = '|'
-                gt_list.append(sum(map(int, gt_str.split(sep))))
+                    if sep not in gt_str:
+                        sys.stderr.write("\nError: Phased genotypes required for D algorithm")
+                        exit(1)
+
+                    gt_list.append(map(int, gt_str.split(sep))[0])
+                    gt_list.append(map(int, gt_str.split(sep))[1])
+
+                # use unphased for non-phased algorithms (r, r2)
+                else:
+                    sep = '/'
+                    if sep not in gt_str:
+                        sep = '|'
+                    gt_list.append(sum(map(int, gt_str.split(sep))))
 
             X[var_id] = gt_list
         else:
@@ -122,13 +135,59 @@ def ld_continuous(vcf_in, var_list, samp_set, field, alg, index_var, labels, col
     if index_var is None:
         # empty array of r values (correlation)
         R = [[0.0] * len(var_list) for i in xrange(len(var_list))]
+        if alg == 'D':
+            D = [[0.0] * len(var_list) for i in xrange(len(var_list))]
+            D_prime = [[0.0] * len(var_list) for i in xrange(len(var_list))]
+            pA_mat = [[0.0] * len(var_list) for i in xrange(len(var_list))]
+            pB_mat = [[0.0] * len(var_list) for i in xrange(len(var_list))]
+            pAB_mat = [[0.0] * len(var_list) for i in xrange(len(var_list))]
 
         for i in xrange(len(var_list)):
             for j in xrange(i,len(var_list)):
                 # extract the variant pair from the dictionary
                 var_pair = np.array([X[var_list[i]], X[var_list[j]]])
 
-                # print var_pair
+                if alg == 'D':
+                    pAB = float(sum(np.add(var_pair[0], var_pair[1]) == 2)) / var_pair.shape[1]
+                    pA = float(sum(var_pair[0] == 1)) / var_pair.shape[1]
+                    pB = float(sum(var_pair[1] == 1)) / var_pair.shape[1]
+
+                    pAB_mat[i][j] = pAB
+                    pAB_mat[j][i] = pAB
+                    pA_mat[i][j] = pA
+                    pA_mat[j][i] = pA
+                    pB_mat[i][j] = pB
+                    pB_mat[j][i] = pB
+                
+                    D_stat = pAB - pA * pB
+                    D[i][j] = D_stat
+                    D[j][i] = D_stat
+
+                    # signed D_prime
+                    D_max = float()
+                    if D_stat <= 0:
+                        D_max = max(-pA * pB, -1 * (1 - pA) * (1 - pB))
+                        try:
+                            D_prime[i][j] = -D_stat / D_max
+                            D_prime[j][i] = -D_stat / D_max
+                        except ZeroDivisionError:
+                            D_prime[i][j] = float('nan')
+                            D_prime[j][i] = float('nan')
+
+                    else: # D_stat > 0
+                        D_max = min(pA * (1 - pB), (1 - pA) * pB)
+                        try:
+                            D_prime[i][j] = D_stat / D_max
+                            D_prime[j][i] = D_stat / D_max
+                        except ZeroDivisionError:
+                            D_prime[i][j] = float('nan')
+                            D_prime[j][i] = float('nan')
+
+                    # print var_list[i], var_list[j]
+                    # print X[var_list[i]]
+                    # print X[var_list[j]]
+                    # print D_stat, D_max, D_stat / D_max
+                    
 
                 # calculate regression
                 (slope, intercept, r_value, p_value, std_err) = stats.linregress(var_pair)
@@ -145,6 +204,9 @@ def ld_continuous(vcf_in, var_list, samp_set, field, alg, index_var, labels, col
         if columns:
             for i in xrange(len(R)):
                 for j in xrange(i, len(R)):
+                    if alg == 'D':
+                        print '\t'.join(map(str, (var_list[i], var_list[j], D[i][j], D_prime[i][j], R[i][j], pA_mat[i][j], pB_mat[i][j], pAB_mat[i][j])))
+                        continue
                     if alg == 'r':
                         ld = R[i][j]
                     elif alg == 'r2':
@@ -155,6 +217,11 @@ def ld_continuous(vcf_in, var_list, samp_set, field, alg, index_var, labels, col
         else:
             if labels:
                 print '\t' + '\t'.join(var_list)
+            if alg == 'D':
+                for i in xrange(len(D)):
+                    if labels:
+                        sys.stdout.write(var_list[i] + '\t')
+                    print '\t'.join(['%0.6g' % x for x in D[i]])
             if alg == 'r':
                 for i in xrange(len(R)):
                     if labels:
@@ -214,8 +281,8 @@ def main():
         args.samples_file.close()
 
     # parse algorithm
-    if args.alg not in ('r', 'r2'):
-        sys.stderr.write("\nError: algorithm '%s' not supported. Must be 'r' or 'r2'\n\n" % args.alg)
+    if args.alg not in ('r', 'r2', 'D'):
+        sys.stderr.write("\nError: algorithm '%s' not supported. Must be 'r', 'r2', or'D'\n\n" % args.alg)
         exit(1)
 
     # call primary function
